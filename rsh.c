@@ -29,22 +29,21 @@ void handle_cd(char **args);
 void print_help();
 
 int main() {
-
     char line[256];  // Buffer to hold user input
 
     while (1) {
-
         // Display the shell prompt
-        fprintf(stderr, "rsh> ");
+        printf("rsh> ");
+        fflush(stdout);  // Ensure prompt is displayed immediately
 
         // Read input from the user
-        if (fgets(line, 256, stdin) == NULL) continue;
+        if (fgets(line, sizeof(line), stdin) == NULL) continue;
 
         // Skip empty lines
         if (strcmp(line, "\n") == 0) continue;
 
         // Remove the newline character at the end
-        line[strlen(line) - 1] = '\0';
+        line[strcspn(line, "\n")] = '\0';
 
         // Tokenize the input into command and arguments
         char *argv[21];  // Max 20 arguments plus NULL terminator
@@ -89,37 +88,33 @@ void execute_external_command(char *cmd, char **args) {
     int status;
     posix_spawnattr_t attr;
 
-    // Initialize spawn attributes for each command
+    // Initialize spawn attributes
     posix_spawnattr_init(&attr);
 
     // Spawn the command
     if (posix_spawnp(&pid, cmd, NULL, &attr, args, environ) != 0) {
         perror("spawn failed");
-        posix_spawnattr_destroy(&attr); // Destroy attributes if spawn fails
+        posix_spawnattr_destroy(&attr);
         return;
     }
 
-    // Wait for the spawned process to finish (parent process waits for child)
+    // Wait for the command to finish
     if (waitpid(pid, &status, 0) == -1) {
         perror("waitpid failed");
     }
 
-    // Check if the spawned process terminated normally
-    if (WIFEXITED(status)) {
-        printf("Spawned process exited with status %d\n", WEXITSTATUS(status));
-    }
-
-    // Destroy spawn attributes after use
     posix_spawnattr_destroy(&attr);
 }
 
 // Function to handle the 'cd' command
 void handle_cd(char **args) {
-    if (args[1] == NULL || args[2] != NULL) {
-        // If there are too many or too few arguments, print an error
+    if (args[1] == NULL) {
+        printf("-rsh: cd: missing argument\n");
+    } else if (args[2] != NULL) {
+        // If there are too many arguments, print an error
         printf("-rsh: cd: too many arguments\n");
     } else if (chdir(args[1]) != 0) {
-        // Try to change directory
+        // Try to change directory and print error on failure
         perror("cd failed");
     }
 }
