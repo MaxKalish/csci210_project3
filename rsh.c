@@ -12,12 +12,10 @@ extern char **environ;
 char *allowed[N] = {"cp","touch","mkdir","ls","pwd","cat","grep","chmod","diff","cd","exit","help"};
 
 int isAllowed(const char* cmd) {
-    // TODO
-    // return 1 if cmd is one of the allowed commands
-    // return 0 otherwise
+    // Return 1 if cmd is one of the allowed commands
+    // Return 0 otherwise
     for (int i = 0; i < N; i++) {
         if (strcmp(cmd, allowed[i]) == 0) {
-            //if the two strings match using string compare, return 1(true)
             return 1;
         }
     }
@@ -26,9 +24,6 @@ int isAllowed(const char* cmd) {
 }
 
 int main() {
-
-    // TODO
-    // Add variables as needed
 
     char line[256];
 
@@ -42,10 +37,6 @@ int main() {
 
         line[strlen(line) - 1] = '\0';
 
-        // TODO
-        // Add code to spawn processes for the first 9 commands
-        // And add code to execute cd, exit, help commands
-        // Use the example provided in myspawn.c
         char *argv[21];
         int argc = 0;
         char *token = strtok(line, " ");
@@ -55,26 +46,42 @@ int main() {
         }
         argv[argc] = NULL;
         
-        if (argc == 0) continue; //empty input
+        if (argc == 0) continue; // Empty input
 
         if (!isAllowed(argv[0])) {
-            //enters this if statement if a 0 is returned from the isAllowed function
-            printf("not allowed \n");
+            // Enter this if statement if a 0 is returned from the isAllowed function
+            printf("not allowed\n");
             continue;
         }
         
         if (strcmp(argv[0], "cd") == 0) {
             if (argc > 2) {
-                printf("rsh: too many arguments for cd");
+                printf("rsh: cd: too many arguments\n");
             } else if (argc == 2 && chdir(argv[1]) != 0) {
                 perror("rsh cd failed");
             }
         } else if (strcmp(argv[0], "exit") == 0) {
             return 0;
         } else if (strcmp(argv[0], "help") == 0) {
-            printf("The allowed commands are: \n");
+            printf("The allowed commands are:\n");
             for (int i = 0; i < N; i++) {
-                printf("%s\n", allowed[i]);
+                printf("%d: %s\n", i + 1, allowed[i]);
+            }
+        } else if (strcmp(argv[0], "mkdir") == 0) {
+            if (argc < 2) {
+                printf("rsh: mkdir: missing operand\n");
+            } else {
+                if (mkdir(argv[1], 0777) != 0) {
+                    perror("rsh mkdir failed");
+                }
+            }
+        } else if (strcmp(argv[0], "rmdir") == 0) {
+            if (argc < 2) {
+                printf("rsh: rmdir: missing operand\n");
+            } else {
+                if (rmdir(argv[1]) != 0) {
+                    perror("rsh rmdir failed");
+                }
             }
         } else {
             pid_t pid;
@@ -94,4 +101,3 @@ int main() {
     }
     return 0;
 }
-
