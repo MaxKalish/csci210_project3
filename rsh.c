@@ -29,11 +29,13 @@ void handle_cd(char **args);
 void print_help();
 
 int main() {
+
     char line[256];  // Buffer to hold user input
 
     while (1) {
+
         // Display the shell prompt
-        printf("rsh> ");
+        fprintf(stderr, "rsh> ");
 
         // Read input from the user
         if (fgets(line, 256, stdin) == NULL) continue;
@@ -87,25 +89,27 @@ void execute_external_command(char *cmd, char **args) {
     int status;
     posix_spawnattr_t attr;
 
-    // Initialize spawn attributes
+    // Initialize spawn attributes for each command
     posix_spawnattr_init(&attr);
 
     // Spawn the command
     if (posix_spawnp(&pid, cmd, NULL, &attr, args, environ) != 0) {
         perror("spawn failed");
+        posix_spawnattr_destroy(&attr); // Destroy attributes if spawn fails
         return;
     }
 
-    // Wait for the command to finish
+    // Wait for the spawned process to finish (parent process waits for child)
     if (waitpid(pid, &status, 0) == -1) {
         perror("waitpid failed");
     }
 
+    // Check if the spawned process terminated normally
     if (WIFEXITED(status)) {
         printf("Spawned process exited with status %d\n", WEXITSTATUS(status));
     }
 
-    // Destroy spawn attributes
+    // Destroy spawn attributes after use
     posix_spawnattr_destroy(&attr);
 }
 
