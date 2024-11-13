@@ -29,13 +29,11 @@ void handle_cd(char **args);
 void print_help();
 
 int main() {
-
     char line[256];  // Buffer to hold user input
 
     while (1) {
-
         // Display the shell prompt
-        fprintf(stderr, "rsh> ");
+        printf("rsh> ");
 
         // Read input from the user
         if (fgets(line, 256, stdin) == NULL) continue;
