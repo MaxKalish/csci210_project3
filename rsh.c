@@ -86,15 +86,10 @@ int main() {
 void execute_external_command(char *cmd, char **args) {
     pid_t pid;
     int status;
-    posix_spawnattr_t attr;
-
-    // Initialize spawn attributes
-    posix_spawnattr_init(&attr);
 
     // Spawn the command
-    if (posix_spawnp(&pid, cmd, NULL, &attr, args, environ) != 0) {
+    if (posix_spawnp(&pid, cmd, NULL, NULL, args, environ) != 0) {
         perror("spawn failed");
-        posix_spawnattr_destroy(&attr);
         return;
     }
 
@@ -102,13 +97,12 @@ void execute_external_command(char *cmd, char **args) {
     if (waitpid(pid, &status, 0) == -1) {
         perror("waitpid failed");
     }
-
-    posix_spawnattr_destroy(&attr);
 }
 
 // Function to handle the 'cd' command
 void handle_cd(char **args) {
     if (args[1] == NULL) {
+        // If no argument is provided, print an error
         printf("-rsh: cd: missing argument\n");
     } else if (args[2] != NULL) {
         // If there are too many arguments, print an error
