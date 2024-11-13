@@ -21,7 +21,8 @@ int isAllowed(const char* cmd) {
             return 1;
         }
     }
-    
+
+    // If the command is not allowed, print NOT ALLOWED!
     return 0;
 }
 
@@ -52,13 +53,14 @@ int main() {
 
         if (!isAllowed(argv[0])) {
             // Enter this if statement if a 0 is returned from the isAllowed function
-            printf("not allowed\n");
+            printf("NOT ALLOWED!\n");
             continue;
         }
         
         if (strcmp(argv[0], "cd") == 0) {
             if (argc > 2) {
-                printf("rsh: cd: too many arguments\n");
+                // Print the error message in the required format
+                printf("-rsh: cd: too many arguments\n");
             } else if (argc == 2 && chdir(argv[1]) != 0) {
                 perror("rsh cd failed");
             }
@@ -80,13 +82,7 @@ int main() {
                 }
             }
         } else if (strcmp(argv[0], "rmdir") == 0) {
-            if (argc < 2) {
-                printf("rsh: rmdir: missing operand\n");
-            } else {
-                if (rmdir(argv[1]) != 0) {
-                    perror("rsh rmdir failed");
-                }
-            }
+            printf("NOT ALLOWED!\n");
         } else if (strcmp(argv[0], "touch") == 0) {
             if (argc < 2) {
                 printf("rsh: touch: missing operand\n");
