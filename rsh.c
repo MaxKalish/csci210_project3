@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define N 12
 
@@ -71,8 +73,10 @@ int main() {
             if (argc < 2) {
                 printf("rsh: mkdir: missing operand\n");
             } else {
-                if (mkdir(argv[1], 0777) != 0) {
-                    perror("rsh mkdir failed");
+                for (int i = 1; i < argc; i++) {
+                    if (mkdir(argv[i], 0777) != 0) {
+                        perror("rsh mkdir failed");
+                    }
                 }
             }
         } else if (strcmp(argv[0], "rmdir") == 0) {
@@ -82,6 +86,32 @@ int main() {
                 if (rmdir(argv[1]) != 0) {
                     perror("rsh rmdir failed");
                 }
+            }
+        } else if (strcmp(argv[0], "touch") == 0) {
+            if (argc < 2) {
+                printf("rsh: touch: missing operand\n");
+            } else {
+                for (int i = 1; i < argc; i++) {
+                    int fd = open(argv[i], O_CREAT | O_WRONLY, 0644);
+                    if (fd == -1) {
+                        perror("rsh touch failed");
+                    } else {
+                        close(fd);
+                    }
+                }
+            }
+        } else if (strcmp(argv[0], "ls") == 0) {
+            pid_t pid;
+            int status;
+            posix_spawnattr_t attr;
+            posix_spawnattr_init(&attr);
+
+            if (posix_spawnp(&pid, "ls", NULL, &attr, argv, environ) != 0) {
+                perror("spawn failed :(");
+            }
+
+            if (waitpid(pid, &status, 0) == -1) {
+                perror("waitpid failed");
             }
         } else {
             pid_t pid;
