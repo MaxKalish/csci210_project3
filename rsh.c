@@ -11,11 +11,11 @@
 
 extern char **environ;
 
+//Array of elements allowed
 char *allowed[N] = {"cp","touch","mkdir","ls","pwd","cat","grep","chmod","diff","cd","exit","help"};
 
+//Checks if command is allowed
 int isAllowed(const char* cmd) {
-    // Return 1 if cmd is one of the allowed commands
-    // Return 0 otherwise
     for (int i = 0; i < N; i++) {
         if (strcmp(cmd, allowed[i]) == 0) {
             return 1;
@@ -30,16 +30,18 @@ int main() {
 
     char line[256];
 
+    //Main loop continuously prompts for user input
     while (1) {
 
         fprintf(stderr, "rsh>");
 
+        //Read user input line
         if (fgets(line, 256, stdin) == NULL) continue;
-
         if (strcmp(line, "\n") == 0) continue;
 
         line[strlen(line) - 1] = '\0';
 
+        //Tokenize and extract
         char *argv[21];
         int argc = 0;
         char *token = strtok(line, " ");
@@ -51,12 +53,13 @@ int main() {
         
         if (argc == 0) continue; // Empty input
 
+        //Check if command is allowed
         if (!isAllowed(argv[0])) {
-            // Enter this if statement if a 0 is returned from the isAllowed function
             printf("NOT ALLOWED!\n");
             continue;
         }
-        
+
+        //Handle built in commands
         if (strcmp(argv[0], "cd") == 0) {
             if (argc > 2) {
                 // Print the error message in the required format
@@ -97,19 +100,23 @@ int main() {
                 }
             }
         } else if (strcmp(argv[0], "ls") == 0) {
+            //Handle ls command using posix_spawnp
             pid_t pid;
             int status;
             posix_spawnattr_t attr;
             posix_spawnattr_init(&attr);
 
+            //Spawn new process to execute ls
             if (posix_spawnp(&pid, "ls", NULL, &attr, argv, environ) != 0) {
                 perror("spawn failed :(");
             }
 
+            // Wait for spawned process to finish
             if (waitpid(pid, &status, 0) == -1) {
                 perror("waitpid failed");
             }
         } else {
+            // Handle all other allowed commands using posix_spawnp
             pid_t pid;
             int status;
             posix_spawnattr_t attr;
